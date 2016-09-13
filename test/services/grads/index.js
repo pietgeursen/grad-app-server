@@ -14,25 +14,38 @@ var App = require('../../../src/app')
 var knex = require('../../../db/knex')()
 var generateUser = require('../../../generateUser')
 
-test('can get all the grads', function (t) {
+test('can get all the grads without being logged in', function (t) {
   var app = App({knex})
-  request(app)
-    .get('/grads')
-    .expect(200)
-    .end(function (err, res) {
-      t.error(err)
+  const {server, client} = createClientAndServer(app, 3031)
+  var grads = client.service('grads')
+
+  pull(
+    promise.source(grads.find()),
+    drain(() => {
+      server.close()
+      t.ok(true)
       t.end()
     })
+  )
 })
 
 test('can not update a grad when not logged in', function (t) {
   var app = App({knex})
-  request(app)
-    .put('/grads')
-    .end(function (err, res) {
-      t.equal(res.status, 401, 'got 401, denied')
+  const {server, client} = createClientAndServer(app, 3031)
+  var grads = client.service('grads')
+
+  pull(
+    async((cb) => {
+      grads.find()
+        .then(cb)
+        .catch((err) => cb(null, err))
+    }),
+    drain((err) => {
+      server.close()
+      t.ok(err)
       t.end()
     })
+  )
 })
 
 test('can authenticate as admin and create a grad', function (t) {
@@ -40,14 +53,8 @@ test('can authenticate as admin and create a grad', function (t) {
   const email = 'admin@admin.com'
   const password = 'password123'
   const newAdmin = {email, password, roles: 'admin'}
-  var port = 3031
-  var host = `http://localhost:${port}`
-  var server = app.listen(port)
 
-  var client = feathers()
-    .configure(rest(host).superagent(superagent))
-    .configure(hooks())
-    .configure(auth())
+  const {server, client} = createClientAndServer(app, 3031)
 
   pull(
     async((cb) => {
@@ -75,14 +82,8 @@ test('grads cannot create more grads', function (t) {
   const email = 'grad@grad.com'
   const password = 'password123'
   const newGrad = {email, password, roles: 'grad'}
-  var port = 3032
-  var host = `http://localhost:${port}`
-  var server = app.listen(port)
 
-  var client = feathers()
-    .configure(rest(host).superagent(superagent))
-    .configure(hooks())
-    .configure(auth())
+  const {server, client} = createClientAndServer(app, 3031)
 
   pull(
     async((cb) => {
@@ -117,3 +118,14 @@ test.onFinish(function () {
       console.log('closed knex')
     })
 })
+
+function createClientAndServer (app, port) {
+  var host = `http://localhost:${port}`
+  var server = app.listen(port)
+
+  var client = feathers()
+    .configure(rest(host).superagent(superagent))
+    .configure(hooks())
+    .configure(auth())
+  return {server, client}
+}
