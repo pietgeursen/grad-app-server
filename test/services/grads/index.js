@@ -2,13 +2,12 @@ var feathers = require('feathers/client')
 var hooks = require('feathers-hooks')
 var auth = require('feathers-authentication/client')
 var rest = require('feathers-rest/client')
-var request = require('supertest')
 var superagent = require('superagent')
 var test = require('tape')
 var pull = require('pull-stream')
 var async = require('pull-async')
 var promise = require('pull-promise')
-var {asyncMap, map, drain} = require('pull-stream')
+var {asyncMap, drain} = require('pull-stream')
 
 var App = require('../../../src/app')
 var knex = require('../../../db/knex')()
@@ -67,7 +66,7 @@ test('can authenticate as admin and create a grad', function (t) {
     promise.through(() => {
       t.ok(true, 'authenitcate as new user')
       var grads = client.service('grads')
-      return grads.create({	name: 'coool'	})
+      return grads.create({name: 'coool'})
     }),
     drain(function (grad) {
       t.equal(grad.name, 'coool')
@@ -96,7 +95,7 @@ test('grads cannot create more grads', function (t) {
     asyncMap((_, cb) => {
       t.ok(true, 'authenitcate as new user')
       var grads = client.service('grads')
-      grads.create({	name: 'coool'	})
+      grads.create({name: 'coool'})
         .then(cb)
         .catch((err) => cb(null, err))
     }),

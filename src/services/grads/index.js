@@ -1,8 +1,6 @@
 'use strict'
 
 const service = require('feathers-knex')
-const Knex = require('knex')
-
 const hooks = require('./hooks')
 
 module.exports = function () {
