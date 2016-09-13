@@ -34,7 +34,7 @@ module.exports = {
   production: {
     client: 'pg',
     connection: {
-      database: 'production',
+      database: 'ebdb',
       host: process.env.RDS_HOSTNAME,
       user: process.env.RDS_USERNAME,
       password: process.env.RDS_PASSWORD,
