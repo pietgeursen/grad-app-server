@@ -7,6 +7,7 @@ var superagent = require('superagent')
 var test = require('tape')
 
 var app = require('../../../src/app')
+var generateUser = require('../../../generateUser')
 
 test('can get all the grads', function (t) {
   request(app)
@@ -28,26 +29,41 @@ test('can not update a grad when not logged in', function (t) {
 })
 
 test('can authenticate as admin', function (t) {
-  var port = 3031
-  var server = app.listen(port)
-  var host = `http://localhost:${port}`
-  var client = feathers()
-    .configure(rest(host).superagent(superagent))
-    .configure(hooks())
-    .configure(auth())
+  const email = 'admin@admin.com'
+  const password = 'password123'
+  generateUser({
+    email,
+    password,
+    roles: 'admin'
+  },
+    function (err, res) {
+      t.error(err)
 
-  client.authenticate({
-    type: 'local',
-    email: 'admin@grads.co.nz',
-    password: 'password'
-  })
-    .then(function () {
-      t.ok(true, 'authenticated ok')
-      t.end()
-      server.close()
+      var port = 3031
+      var server = app.listen(port)
+      var host = `http://localhost:${port}`
+      var client = feathers()
+        .configure(rest(host).superagent(superagent))
+        .configure(hooks())
+        .configure(auth())
+
+      client.authenticate({
+        type: 'local',
+        email,
+      password})
+        .then(function () {
+          t.ok(true, 'authenticated ok')
+          t.end()
+          server.close()
+        })
     })
 })
 
 test.onFinish(function () {
-  app.get('db').destroy()
+  knex = app.get('db')
+  knex.select().table('users').del()
+    .then(function () {
+      console.log('deleted all the things')
+      knex.destroy()
+    })
 })
