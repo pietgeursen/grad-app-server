@@ -1,6 +1,6 @@
 exports.up = function (knex, Promise) {
   return knex.schema.createTable('grads', function (table) {
-    table.increments()
+    table.increments('id')
     table.timestamps()
     table.string('name')
     table.string('short_description')

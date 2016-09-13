@@ -16,12 +16,14 @@ exports.before = {
   update: [
     auth.verifyToken(),
     auth.populateUser(),
-    auth.restrictToAuthenticated()
+    auth.restrictToAuthenticated(),
+    auth.restrictToOwner({ ownerField: 'user_id' })
   ],
   patch: [
     auth.verifyToken(),
     auth.populateUser(),
-    auth.restrictToAuthenticated()
+    auth.restrictToAuthenticated(),
+    auth.restrictToOwner({ ownerField: 'user_id' })
   ],
   remove: [
     auth.verifyToken(),

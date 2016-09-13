@@ -34,19 +34,16 @@ exports.seed = function (knex, Promise) {
         ]),
         knex('users').insert([
           {
-            id: 1,
-            email: 'admin@edaGrad.com',
-            admin: true
-          },
-          {
             id: 2,
             grad_id: 1,
             email: 'pietgeursen@gmail.com',
-            password_hash: 'sercretsss'
+            roles: 'grad',
+            password: 'sercretsss'
           },
           {
             id: 3,
             grad_id: 2,
+            roles: 'grad',
             email: 'mixmix@gmail.com'
           }
         ])
