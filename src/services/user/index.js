@@ -1,7 +1,6 @@
 'use strict'
 
 const service = require('feathers-knex')
-const db = require('../../../db/knex')
 const hooks = require('./hooks')
 
 module.exports = function () {
@@ -9,7 +8,7 @@ module.exports = function () {
 
   // Initialize our service with any options it requires
   app.use('/users', service({
-    Model: db,
+    Model: app.get('db'),
     name: 'users'
   }))
 

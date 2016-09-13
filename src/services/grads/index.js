@@ -3,7 +3,6 @@
 const service = require('feathers-knex')
 const Knex = require('knex')
 
-const db = require('../../../db/knex')
 const hooks = require('./hooks')
 
 module.exports = function () {
@@ -11,7 +10,7 @@ module.exports = function () {
 
   // Initialize our service with any options it requires
   app.use('/grads', service({
-    Model: db,
+    Model: app.get('db'),
     name: 'grads'
   }))
 
