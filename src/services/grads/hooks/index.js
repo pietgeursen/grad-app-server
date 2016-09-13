@@ -32,7 +32,13 @@ exports.before = {
 
 exports.after = {
   all: [],
-  find: [],
+  find: [
+    hooks.populate('user', {
+      service: 'users',
+      field: 'user_id'
+    }),
+    hooks.remove('password_hash')
+  ],
   get: [],
   create: [],
   update: [],

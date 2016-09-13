@@ -1,8 +1,6 @@
 'use strict'
 
 const service = require('feathers-knex')
-const Knex = require('knex')
-
 const db = require('../../../db/knex')
 const hooks = require('./hooks')
 
@@ -10,17 +8,17 @@ module.exports = function () {
   const app = this
 
   // Initialize our service with any options it requires
-  app.use('/grads', service({
+  app.use('/users', service({
     Model: db,
-    name: 'grads'
+    name: 'users'
   }))
 
   // Get our initialize service to that we can bind hooks
-  const gradsService = app.service('/grads')
+  const userService = app.service('/users')
 
   // Set up our before hooks
-  gradsService.before(hooks.before)
+  userService.before(hooks.before)
 
   // Set up our after hooks
-  gradsService.after(hooks.after)
+  userService.after(hooks.after)
 }

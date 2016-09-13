@@ -1,13 +1,16 @@
 exports.seed = function (knex, Promise) {
   // Deletes ALL existing entries
-  return knex('users').del()
+  return knex('grads').del()
+    .then(function () {
+      return knex('users').del()
+    })
     .then(function () {
       return Promise.all([
         // Inserts seed entries
-        knex('users').insert([
+        knex('grads').insert([
           {
             id: 1,
-            email: 'pietgeursen@gmail.com',
+            user_id: 2,
             name: 'Piet Geursen',
             image_link: 'http://26.media.tumblr.com/tumblr_lh3j390T241qfyzelo1_1280.jpg',
             github_link: 'https://github.com/pietgeursen',
@@ -18,7 +21,7 @@ exports.seed = function (knex, Promise) {
           },
           {
             id: 2,
-            email: 'mixmix@gmail.com',
+            user_id: 3,
             name: 'Mix Mix',
             image_link: 'http://25.media.tumblr.com/tumblr_lyxm5waoQQ1r4c11po1_500.jpg',
             github_link: 'https://github.com/mixmix',
@@ -28,6 +31,24 @@ exports.seed = function (knex, Promise) {
 
           }
 
+        ]),
+        knex('users').insert([
+          {
+            id: 1,
+            email: 'admin@edaGrad.com',
+            admin: true
+          },
+          {
+            id: 2,
+            grad_id: 1,
+            email: 'pietgeursen@gmail.com',
+            password_hash: 'sercretsss'
+          },
+          {
+            id: 3,
+            grad_id: 2,
+            email: 'mixmix@gmail.com'
+          }
         ])
       ])
     })
