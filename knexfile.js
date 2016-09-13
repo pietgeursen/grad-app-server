@@ -31,5 +31,21 @@ module.exports = {
       tableName: 'knex_migrations'
     }
   },
-  production: process.env.DATABASE_URL
+  production: {
+    client: 'pg',
+    connection: {
+      database: 'production',
+      host: process.env.RDS_HOSTNAME,
+      user: process.env.RDS_USERNAME,
+      password: process.env.RDS_PASSWORD,
+      port: process.env.RDS_PORT
+    },
+    pool: {
+      min: 2,
+      max: 10
+    },
+    migrations: {
+      tableName: 'knex_migrations'
+    }
+  }
 }
