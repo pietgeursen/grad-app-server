@@ -74,43 +74,37 @@ test('grads cannot create more grads', function (t) {
   var app = App({knex})
   const email = 'grad@grad.com'
   const password = 'password123'
-  generateUser({
-    email,
-    password,
-    roles: 'grad'
-  }, {knex},
-    function (err, res) {
-      t.error(err)
+  const newGrad = {email, password, roles: 'grad'}
+  var port = 3032
+  var host = `http://localhost:${port}`
+  var server = app.listen(port)
 
-      var port = 3032
-      var server = app.listen(port)
-      var host = `http://localhost:${port}`
-      var client = feathers()
-        .configure(rest(host).superagent(superagent))
-        .configure(hooks())
-        .configure(auth())
+  var client = feathers()
+    .configure(rest(host).superagent(superagent))
+    .configure(hooks())
+    .configure(auth())
 
+  pull(
+    async((cb) => {
+      generateUser(newGrad, {knex}, cb)
+    }),
+    promise.through((user) => {
+      t.ok(true, 'generate new user')
+      return client.authenticate({type: 'local', email, password})
+    }),
+    asyncMap((_, cb) => {
+      t.ok(true, 'authenitcate as new user')
       var grads = client.service('grads')
-
-      client.authenticate({
-        type: 'local',
-        email,
-      password})
-        .then(function () {
-          t.ok(true, 'authenticated ok')
-          return grads.create({
-            name: 'coool'
-          })
-        })
-        .then(function (grad) {
-          t.fail()
-        })
-        .catch(function (err) {
-          t.ok(err)
-          t.end()
-          server.close()
-        })
+      grads.create({	name: 'coool'	})
+        .then(cb)
+        .catch((err) => cb(null, err))
+    }),
+    drain(function (err) {
+      t.ok(err)
+      t.end()
+      server.close()
     })
+  )
 })
 
 test.onFinish(function () {
