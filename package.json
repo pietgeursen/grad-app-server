@@ -16,7 +16,7 @@
     "node": ">= 0.12.0"
   },
   "scripts": {
-    "prestart": "node ./node_modules/knex/lib/bin/cli.js migrate:latest",
+    "prestart": "NODE_ENV=production node ./node_modules/knex/lib/bin/cli.js migrate:latest",
     "test:deps": "dependency-check . && dependency-check . --extra --no-dev",
     "test:server": "tape test/**/*.js",
     "test": "standard && npm run test:deps && npm run test:server ",
