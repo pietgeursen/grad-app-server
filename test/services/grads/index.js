@@ -5,6 +5,10 @@ var rest = require('feathers-rest/client')
 var request = require('supertest')
 var superagent = require('superagent')
 var test = require('tape')
+var pull = require('pull-stream')
+var async = require('pull-async')
+var promise = require('pull-promise')
+var {asyncMap, map, drain} = require('pull-stream')
 
 var App = require('../../../src/app')
 var knex = require('../../../db/knex')()
@@ -35,40 +39,35 @@ test('can authenticate as admin and create a grad', function (t) {
   var app = App({knex})
   const email = 'admin@admin.com'
   const password = 'password123'
-  generateUser({
-    email,
-    password,
-    roles: 'admin'
-  }, {knex},
-    function (err, res) {
-      t.error(err)
+  const newAdmin = {email, password, roles: 'admin'}
+  var port = 3031
+  var host = `http://localhost:${port}`
+  var server = app.listen(port)
 
-      var port = 3031
-      var server = app.listen(port)
-      var host = `http://localhost:${port}`
-      var client = feathers()
-        .configure(rest(host).superagent(superagent))
-        .configure(hooks())
-        .configure(auth())
+  var client = feathers()
+    .configure(rest(host).superagent(superagent))
+    .configure(hooks())
+    .configure(auth())
 
+  pull(
+    async((cb) => {
+      generateUser(newAdmin, {knex}, cb)
+    }),
+    promise.through((user) => {
+      t.ok(true, 'generate new user')
+      return client.authenticate({type: 'local', email, password})
+    }),
+    promise.through(() => {
+      t.ok(true, 'authenitcate as new user')
       var grads = client.service('grads')
-
-      client.authenticate({
-        type: 'local',
-        email,
-      password})
-        .then(function () {
-          t.ok(true, 'authenticated ok')
-          return grads.create({
-            name: 'coool'
-          })
-        })
-        .then(function (grad) {
-          t.equal(grad.name, 'coool')
-          t.end()
-          server.close()
-        })
+      return grads.create({	name: 'coool'	})
+    }),
+    drain(function (grad) {
+      t.equal(grad.name, 'coool')
+      t.end()
+      server.close()
     })
+  )
 })
 
 test('grads cannot create more grads', function (t) {
