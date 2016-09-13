@@ -6,10 +6,12 @@ var request = require('supertest')
 var superagent = require('superagent')
 var test = require('tape')
 
-var app = require('../../../src/app')
+var App = require('../../../src/app')
+var knex = require('../../../db/knex')()
 var generateUser = require('../../../generateUser')
 
 test('can get all the grads', function (t) {
+  var app = App({knex})
   request(app)
     .get('/grads')
     .expect(200)
@@ -20,6 +22,7 @@ test('can get all the grads', function (t) {
 })
 
 test('can not update a grad when not logged in', function (t) {
+  var app = App({knex})
   request(app)
     .put('/grads')
     .end(function (err, res) {
@@ -28,14 +31,15 @@ test('can not update a grad when not logged in', function (t) {
     })
 })
 
-test('can authenticate as admin', function (t) {
+test('can authenticate as admin and create a grad', function (t) {
+  var app = App({knex})
   const email = 'admin@admin.com'
   const password = 'password123'
   generateUser({
     email,
     password,
     roles: 'admin'
-  },
+  }, {knex},
     function (err, res) {
       t.error(err)
 
@@ -47,12 +51,63 @@ test('can authenticate as admin', function (t) {
         .configure(hooks())
         .configure(auth())
 
+      var grads = client.service('grads')
+
       client.authenticate({
         type: 'local',
         email,
       password})
         .then(function () {
           t.ok(true, 'authenticated ok')
+          return grads.create({
+            name: 'coool'
+          })
+        })
+        .then(function (grad) {
+          t.equal(grad.name, 'coool')
+          t.end()
+          server.close()
+        })
+    })
+})
+
+test('grads cannot create more grads', function (t) {
+  var app = App({knex})
+  const email = 'grad@grad.com'
+  const password = 'password123'
+  generateUser({
+    email,
+    password,
+    roles: 'grad'
+  }, {knex},
+    function (err, res) {
+      t.error(err)
+
+      var port = 3032
+      var server = app.listen(port)
+      var host = `http://localhost:${port}`
+      var client = feathers()
+        .configure(rest(host).superagent(superagent))
+        .configure(hooks())
+        .configure(auth())
+
+      var grads = client.service('grads')
+
+      client.authenticate({
+        type: 'local',
+        email,
+      password})
+        .then(function () {
+          t.ok(true, 'authenticated ok')
+          return grads.create({
+            name: 'coool'
+          })
+        })
+        .then(function (grad) {
+          t.fail()
+        })
+        .catch(function (err) {
+          t.ok(err)
           t.end()
           server.close()
         })
@@ -60,10 +115,12 @@ test('can authenticate as admin', function (t) {
 })
 
 test.onFinish(function () {
-  knex = app.get('db')
   knex.select().table('users').del()
     .then(function () {
       console.log('deleted all the things')
-      knex.destroy()
+      return knex.destroy()
+    })
+    .then(function () {
+      console.log('closed knex')
     })
 })

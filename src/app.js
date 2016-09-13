@@ -13,26 +13,28 @@ const bodyParser = require('body-parser')
 const socketio = require('feathers-socketio')
 const middleware = require('./middleware')
 
-// order is importan here
-const app = feathers()
-const db = require('../db/knex.js')
-app.set('db', db())
+module.exports = function app (opts) {
+  // order is important here
+  const _opts = opts || {}
+  const app = feathers()
+  const db = _opts.knex || require('../db/knex.js')()
+  app.set('db', db)
 
-const services = require('./services')
+  const services = require('./services')
 
-app.configure(configuration(path.join(__dirname, '..')))
+  app.configure(configuration(path.join(__dirname, '..')))
 
-app.use(compress())
-  .options('*', cors())
-  .use(cors())
-  .use(favicon(path.join(app.get('public'), 'favicon.ico')))
-  .use('/', serveStatic(app.get('public')))
-  .use(bodyParser.json())
-  .use(bodyParser.urlencoded({ extended: true }))
-  .configure(hooks())
-  .configure(rest())
-  .configure(socketio())
-  .configure(services)
-  .configure(middleware)
-
-module.exports = app
+  app.use(compress())
+    .options('*', cors())
+    .use(cors())
+    .use(favicon(path.join(app.get('public'), 'favicon.ico')))
+    .use('/', serveStatic(app.get('public')))
+    .use(bodyParser.json())
+    .use(bodyParser.urlencoded({ extended: true }))
+    .configure(hooks())
+    .configure(rest())
+    .configure(socketio())
+    .configure(services)
+    .configure(middleware)
+  return app
+}

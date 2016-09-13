@@ -11,24 +11,44 @@ exports.before = {
   create: [
     auth.verifyToken(),
     auth.populateUser(),
-    auth.restrictToAuthenticated()
+    auth.restrictToRoles({
+      roles: ['admin'],
+      fieldName: 'roles',
+      idField: 'id'
+    })
   ],
   update: [
     auth.verifyToken(),
     auth.populateUser(),
-    auth.restrictToAuthenticated(),
-    auth.restrictToOwner({ ownerField: 'user_id' })
+    auth.restrictToRoles({
+      roles: ['admin'],
+      fieldName: 'roles',
+      idField: 'id',
+      ownerField: 'user_id',
+      owner: true
+    })
   ],
   patch: [
     auth.verifyToken(),
     auth.populateUser(),
-    auth.restrictToAuthenticated(),
-    auth.restrictToOwner({ ownerField: 'user_id' })
+    auth.restrictToRoles({
+      roles: ['admin'],
+      fieldName: 'roles',
+      idField: 'id',
+      ownerField: 'user_id',
+      owner: true
+    })
   ],
   remove: [
     auth.verifyToken(),
     auth.populateUser(),
-    auth.restrictToAuthenticated()
+    auth.restrictToRoles({
+      roles: ['admin'],
+      fieldName: 'roles',
+      idField: 'id',
+      ownerField: 'user_id',
+      owner: true
+    })
   ]
 }
 
