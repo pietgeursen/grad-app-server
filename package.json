@@ -20,8 +20,7 @@
     "test:deps": "dependency-check . && dependency-check . --extra --no-dev",
     "test:server": "tape test/**/*.js",
     "test": "standard && npm run test:deps && npm run test:server ",
-    "start": "node src/",
-    "start:dev": "node src/"
+    "start": "node src/"
   },
   "dependencies": {
     "body-parser": "^1.15.2",
@@ -36,7 +35,6 @@
     "feathers-rest": "^1.5.0",
     "feathers-socketio": "^1.4.1",
     "knex": "^0.11.10",
-    "letsencrypt-express": "^2.0.3",
     "pg": "^6.1.0",
     "serve-favicon": "^2.3.0"
   },
