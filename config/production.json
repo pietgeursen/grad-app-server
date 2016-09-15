@@ -1,7 +1,5 @@
 {
-  "host": "feather-fun-app.feathersjs.com",
-  "port": 80,
-  "postgres": "DATABASE_URL",
+  "host": "devacademygrads.co.nz",
   "public": "../public/",
   "auth": {
     "idField": "id",

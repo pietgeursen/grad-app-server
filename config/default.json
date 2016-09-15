@@ -1,7 +1,5 @@
 {
   "host": "localhost",
-  "port": 3030,
-  "postgres": "postgres://dev:@localhost:5432/dev",
   "public": "../public/",
   "auth": {
     "idField": "id",
