@@ -1,6 +1,6 @@
-# feather-fun
+# EDA grad app api.
 
-> 
+## Deployment
 
 ## About
 
