@@ -1,0 +1,12 @@
+#!/usr/bin/env node
+var generate = require('./generateUser');
+var email = process.argv[2]
+var password = process.argv[3]
+var roles = process.argv[4] || 'grad'
+
+var knex = require('./db/knex')()
+
+generate({email, password, roles}, {knex}, function(err, res) {
+  console.log(err, res)
+  knex.destroy()
+})
