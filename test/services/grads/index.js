@@ -13,6 +13,17 @@ var App = require('../../../src/app')
 var knex = require('../../../db/knex')()
 var generateUser = require('../../../generateUser')
 
+test('migrate rollback and latest', function(t) {
+  pull(
+    promise.source(knex.migrate.rollback()), 
+    promise.through(_ => knex.migrate.latest()),
+    pull.drain((res) => {
+      t.ok(res)
+      t.end()
+    }) 
+  )
+})
+
 test('can get all the grads without being logged in', function (t) {
   var app = App({knex})
   const {server, client} = createClientAndServer(app, 3031)
@@ -109,6 +120,9 @@ test('grads cannot create more grads', function (t) {
 
 test.onFinish(function () {
   knex.select().table('users').del()
+    .then(function() {
+      return knex.select().table('grads').del()
+    })
     .then(function () {
       console.log('deleted all the things')
       return knex.destroy()
