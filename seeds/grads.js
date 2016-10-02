@@ -9,7 +9,7 @@ exports.seed = function (knex, Promise) {
         // Inserts seed entries
         knex('grads').insert([
           {
-            id: 1,
+            id: 2,
             user_id: 2,
             name: 'Piet Geursen',
             image_link: 'http://26.media.tumblr.com/tumblr_lh3j390T241qfyzelo1_1280.jpg',
@@ -21,7 +21,7 @@ exports.seed = function (knex, Promise) {
 
           },
           {
-            id: 2,
+            id: 3,
             user_id: 3,
             name: 'Mix Mix',
             image_link: 'http://25.media.tumblr.com/tumblr_lyxm5waoQQ1r4c11po1_500.jpg',
@@ -37,13 +37,13 @@ exports.seed = function (knex, Promise) {
         knex('users').insert([
           {
             id: 2,
-            grad_id: 1,
+            grad_id: 2,
             roles: 'grad',
             email: 'derp@meow.com'
           },
           {
             id: 3,
-            grad_id: 2,
+            grad_id: 3,
             roles: 'grad',
             email: 'mixmix@gmail.com'
           }
