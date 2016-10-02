@@ -36,6 +36,12 @@ exports.seed = function (knex, Promise) {
         ]),
         knex('users').insert([
           {
+            id: 2,
+            grad_id: 1,
+            roles: 'grad',
+            email: 'derp@meow.com'
+          },
+          {
             id: 3,
             grad_id: 2,
             roles: 'grad',

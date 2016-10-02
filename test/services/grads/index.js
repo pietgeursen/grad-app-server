@@ -118,8 +118,70 @@ test('grads cannot create more grads', function (t) {
   )
 })
 
+test.skip('grads can update their profiles', function(t) {
+
+  var app = App({knex})
+  const email = 'newgrad@grad.com'
+  const password = 'password123'
+  const newUser = {email, password, roles: 'grad'}
+
+  const {server, client} = createClientAndServer(app, 3031)
+
+  pull(
+    async((cb) => {
+      generateUser(newUser, {knex}, cb)
+    }),
+    promise.source(() => {
+      t.ok(true, 'generate new user')
+      return client.authenticate({type: 'local', email, password})
+    }),
+    asyncMap((result, cb) => {
+      t.ok(true, 'authenitcate as new user')
+      var grads = client.service('grads')
+      grads.update(Number(result.data.id), {name: 'new'},{})
+        .then(console.log)
+        .catch(console.log)
+    }),
+    drain(function (res) {
+      t.ok(res)
+      t.end()
+      server.close()
+    })
+  )
+})
+
+test('when an admin creates a grad user, their grad profile is created too', function(t) {
+
+  var app = App({knex})
+  const email = 'admin@admin.com'
+  const password = 'password123'
+  const newAdmin = {email, password, roles: 'admin'}
+  const newGrad = {email:'piet@derp.com', password: 'password', roles: 'grad'}
+
+  const {server, client} = createClientAndServer(app, 3031)
+
+  pull(
+    promise.source(
+      client.authenticate({type: 'local', email, password})
+    ),
+    promise.through((admin) => {
+      t.ok(true, 'authenitcated admin')
+      return client.service('users').create(newGrad)
+    }),
+    promise.through((newGrad) => {
+      return client.service('grads').find({query:{user_id: newGrad.id}}) 
+    }),
+    pull.collect((err, res) => {
+      t.error(err)
+      t.equal(res.length, 1, 'has one grad')
+      t.end()  
+      server.close() 
+    })
+  )
+})
+
 test.onFinish(function () {
-  knex.select().table('users').del()
+  knex.raw('DROP TABLE users CASCADE')
     .then(function() {
       return knex.select().table('grads').del()
     })

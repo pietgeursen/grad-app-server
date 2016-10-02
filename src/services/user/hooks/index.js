@@ -41,9 +41,22 @@ exports.before = {
 
 exports.after = {
   all: [hooks.remove('password')],
-  find: [],
+  find: [
+    hooks.populate('grad', {
+      service: 'grads',
+      field: 'grad_id'
+    }),
+  ],
   get: [],
-  create: [],
+  create: [
+    (hook, cb) => {
+      if(hook.data.roles == 'grad'){
+        const userId = hook.result.id
+        const knex = hook.app.get('db')
+        return knex('grads').insert({user_id: userId}).asCallback(()=> cb(null, hook))
+      }else cb(null, hook)
+    } 
+  ],
   update: [],
   patch: [],
   remove: []
