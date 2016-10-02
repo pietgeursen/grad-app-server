@@ -9,6 +9,7 @@ exports.up = function (knex, Promise) {
     table.string('image_link')
     table.string('github_link')
     table.string('cv_link')
+    table.integer('user_id')
   })
 }
 

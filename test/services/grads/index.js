@@ -13,16 +13,13 @@ var App = require('../../../src/app')
 var knex = require('../../../db/knex')()
 var generateUser = require('../../../generateUser')
 
-test('migrate rollback and latest', function(t) {
-  pull(
+function resetDb() {
+  return pull(
     promise.source(knex.migrate.rollback()), 
-    promise.through(_ => knex.migrate.latest()),
-    pull.drain((res) => {
-      t.ok(res)
-      t.end()
-    }) 
-  )
-})
+    promise.through(_ => knex.migrate.latest())
+  ) 
+}
+
 
 test('can get all the grads without being logged in', function (t) {
   var app = App({knex})
@@ -30,7 +27,8 @@ test('can get all the grads without being logged in', function (t) {
   var grads = client.service('grads')
 
   pull(
-    promise.source(grads.find()),
+    resetDb(),
+    promise.through(_ => grads.find()),
     drain(() => {
       server.close()
       t.ok(true)
@@ -45,8 +43,9 @@ test('can not update a grad when not logged in', function (t) {
   var grads = client.service('grads')
 
   pull(
-    async((cb) => {
-      grads.find()
+    resetDb(),
+    asyncMap((_, cb) => {
+      grads.update(1, {name: 'derp'})
         .then(cb)
         .catch((err) => cb(null, err))
     }),
@@ -67,7 +66,8 @@ test('can authenticate as admin and create a grad', function (t) {
   const {server, client} = createClientAndServer(app, 3031)
 
   pull(
-    async((cb) => {
+    resetDb(),
+    asyncMap((_, cb) => {
       generateUser(newAdmin, {knex}, cb)
     }),
     promise.through((user) => {
@@ -96,7 +96,8 @@ test('grads cannot create more grads', function (t) {
   const {server, client} = createClientAndServer(app, 3031)
 
   pull(
-    async((cb) => {
+    resetDb(),
+    asyncMap((_, cb) => {
       generateUser(newGrad, {knex}, cb)
     }),
     promise.through((user) => {
@@ -118,38 +119,6 @@ test('grads cannot create more grads', function (t) {
   )
 })
 
-test.skip('grads can update their profiles', function(t) {
-
-  var app = App({knex})
-  const email = 'newgrad@grad.com'
-  const password = 'password123'
-  const newUser = {email, password, roles: 'grad'}
-
-  const {server, client} = createClientAndServer(app, 3031)
-
-  pull(
-    async((cb) => {
-      generateUser(newUser, {knex}, cb)
-    }),
-    promise.source(() => {
-      t.ok(true, 'generate new user')
-      return client.authenticate({type: 'local', email, password})
-    }),
-    asyncMap((result, cb) => {
-      t.ok(true, 'authenitcate as new user')
-      var grads = client.service('grads')
-      grads.update(Number(result.data.id), {name: 'new'},{})
-        .then(console.log)
-        .catch(console.log)
-    }),
-    drain(function (res) {
-      t.ok(res)
-      t.end()
-      server.close()
-    })
-  )
-})
-
 test('when an admin creates a grad user, their grad profile is created too', function(t) {
 
   var app = App({knex})
@@ -161,7 +130,11 @@ test('when an admin creates a grad user, their grad profile is created too', fun
   const {server, client} = createClientAndServer(app, 3031)
 
   pull(
-    promise.source(
+    resetDb(),
+    asyncMap((_, cb) => {
+      generateUser(newAdmin, {knex}, cb)
+    }),
+    promise.through(_ =>
       client.authenticate({type: 'local', email, password})
     ),
     promise.through((admin) => {
@@ -169,6 +142,7 @@ test('when an admin creates a grad user, their grad profile is created too', fun
       return client.service('users').create(newGrad)
     }),
     promise.through((newGrad) => {
+      t.ok(newGrad, 'got new grad record')
       return client.service('grads').find({query:{user_id: newGrad.id}}) 
     }),
     pull.collect((err, res) => {
@@ -180,8 +154,47 @@ test('when an admin creates a grad user, their grad profile is created too', fun
   )
 })
 
+test('grads can update their profiles', function(t) {
+
+  var app = App({knex})
+  const email = 'newgrad@grad.com'
+  const password = 'password123'
+  const newUser = {email, password, roles: 'grad'}
+
+  const {server, client} = createClientAndServer(app, 3031)
+
+  pull(
+    resetDb(),
+    asyncMap((_, cb) => {
+      generateUser(newUser, {knex}, cb)
+    }),
+    promise.through(() => {
+      t.ok(true, 'generate new user')
+      return client.authenticate({type: 'local', email, password})
+    }),
+    asyncMap((result, cb)=> {
+      var grads = client.service('grads')
+      grads.find({user_id: result.data.id}, cb) 
+    }),
+    pull.flatten(),
+    asyncMap((grad, cb) => {
+      t.ok(true, 'authenticate as new user')
+      var grads = client.service('grads')
+      grads.update(grad.id, {name: 'new'})
+       .then(res => cb(null,res))
+       .catch(cb)
+    }),
+    pull.collect(function (err, res) {
+      t.error(err)
+      t.equal(res[0].name, 'new')
+      t.end()
+      server.close()
+    })
+  )
+})
+
 test.onFinish(function () {
-  knex.raw('DROP TABLE users CASCADE')
+  knex.select().table('users').del()
     .then(function() {
       return knex.select().table('grads').del()
     })

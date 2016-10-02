@@ -10,7 +10,7 @@ module.exports = function generateUser (user, opts, cb) {
     knex('users').insert(user, 'id')  
       .then((newRecord) => {
         if(user.roles == 'grad'){
-          return knex('grads').insert({user_id: newRecord[0].id}, 'user_id')  
+          return knex('grads').insert({user_id: newRecord[0]}, 'user_id')  
         }else return Promise.resolve(newRecord)
       })
       .then((arr) => (
