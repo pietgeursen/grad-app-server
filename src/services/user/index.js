@@ -1,6 +1,6 @@
 'use strict'
 
-const service = require('feathers-knex')
+const service = (process.env.NODE_ENV === 'test') ? require('feathers-memory') : require('feathers-knex')  
 const hooks = require('./hooks')
 
 module.exports = function () {
@@ -9,7 +9,8 @@ module.exports = function () {
   // Initialize our service with any options it requires
   app.use('/users', service({
     Model: app.get('db'),
-    name: 'users'
+    name: 'users',
+    startId: 1
   }))
 
   // Get our initialize service to that we can bind hooks

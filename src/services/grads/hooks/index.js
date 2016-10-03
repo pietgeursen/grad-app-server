@@ -54,10 +54,6 @@ exports.before = {
 exports.after = {
   all: [],
   find: [
-    hooks.iff(hooks.isProvider('external'), hooks.populate('user', {
-      service: 'users',
-      field: 'user_id'
-    })),
     hooks.remove('password_hash')
   ],
   get: [],

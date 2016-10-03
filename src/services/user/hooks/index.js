@@ -2,7 +2,6 @@
 
 const hooks = require('feathers-hooks-common')
 const auth = require('feathers-authentication').hooks
-
 exports.before = {
   all: [],
   find: [
@@ -17,7 +16,7 @@ exports.before = {
     auth.restrictToOwner({ ownerField: 'id' })
   ],
   create: [
-    auth.hashPassword()
+    auth.hashPassword()//think this needs to be locked down more?
   ],
   update: [
     auth.verifyToken(),
@@ -46,7 +45,7 @@ exports.after = {
       const userId = hook.result[0].id
       const grads = hook.app.service('grads')
       grads.find({query:{user_id: userId}}, (err, grads) => {
-          hook.result.grad = grads[0] 
+          hook.result.grad = Object.assign({}, grads[0]) 
           cb(err, hook)
       })
     }
@@ -65,9 +64,10 @@ exports.after = {
     (hook, cb) => {
       if(hook.data.roles == 'grad'){
         const userId = hook.result.id
-        const knex = hook.app.get('db')
         const grads = hook.app.service('grads')
-        grads.create({user_id: userId}, (err, res)=> cb(err, hook))
+        grads.create({user_id: userId}, (err, res)=> {
+          cb(err, hook)
+        })
       }else cb(null, hook)
     } 
   ],
