@@ -119,6 +119,32 @@ test('grads cannot create more grads', function (t) {
   )
 })
 
+test('an authenticated user has the grad object attached too', function(t) {
+  var app = App({knex})
+  const email = 'grad@grad.com'
+  const password = 'password123'
+  const newGrad = {email, password, roles: 'grad'}
+
+  const {server, client} = createClientAndServer(app, 3031)
+
+  pull(
+    resetDb(),
+    asyncMap((_, cb) => {
+      generateUser(newGrad, {knex}, cb)
+    }),
+    promise.through((user) => {
+      t.ok(true, 'generate new user')
+      return client.authenticate({type: 'local', email, password})
+    }),
+    pull.collect(function (err, res) {
+      t.error(err)
+      t.ok(res[0].data.grad)
+      t.end()
+      server.close()
+    })
+  )
+})
+
 test('when an admin creates a grad user, their grad profile is created too', function(t) {
 
   var app = App({knex})
