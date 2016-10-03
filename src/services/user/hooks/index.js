@@ -52,7 +52,17 @@ exports.after = {
       })
     }
   ],
-  get: [],
+  get: [
+    (hook, cb) => {
+      const userId = hook.result.id
+      const knex = hook.app.get('db')
+      knex('grads').where({user_id: userId}).asCallback((err, res) => {
+        if(err) return cb(err, hook)
+        hook.result.grad = res[0] 
+        cb(null, hook)
+      })
+    }
+  ],
   create: [
     (hook, cb) => {
       if(hook.data.roles == 'grad'){
