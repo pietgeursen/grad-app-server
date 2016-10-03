@@ -66,7 +66,8 @@ exports.after = {
       if(hook.data.roles == 'grad'){
         const userId = hook.result.id
         const knex = hook.app.get('db')
-        return knex('grads').insert({user_id: userId}).asCallback(()=> cb(null, hook))
+        const grads = hook.app.service('grads')
+        grads.create({user_id: userId}, (err, res)=> cb(err, hook))
       }else cb(null, hook)
     } 
   ],
