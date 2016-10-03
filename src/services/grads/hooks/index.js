@@ -1,6 +1,6 @@
 'use strict'
 
-const hooks = require('feathers-hooks')
+const hooks = require('feathers-hooks-common')
 const auth = require('feathers-authentication').hooks
 
 exports.before = {
@@ -54,10 +54,10 @@ exports.before = {
 exports.after = {
   all: [],
   find: [
-    hooks.populate('user', {
+    hooks.iff(hooks.isProvider('external'), hooks.populate('user', {
       service: 'users',
       field: 'user_id'
-    }),
+    })),
     hooks.remove('password_hash')
   ],
   get: [],

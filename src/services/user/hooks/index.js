@@ -1,6 +1,6 @@
 'use strict'
 
-const hooks = require('feathers-hooks')
+const hooks = require('feathers-hooks-common')
 const auth = require('feathers-authentication').hooks
 
 exports.before = {
@@ -44,22 +44,20 @@ exports.after = {
   find: [
     (hook, cb) => {
       const userId = hook.result[0].id
-      const knex = hook.app.get('db')
-      knex('grads').where({user_id: userId}).asCallback((err, res) => {
-        if(err) return cb(err, hook)
-        hook.result.grad = res[0] 
-        cb(null, hook)
+      const grads = hook.app.service('grads')
+      grads.find({query:{user_id: userId}}, (err, grads) => {
+          hook.result.grad = grads[0] 
+          cb(err, hook)
       })
     }
   ],
   get: [
     (hook, cb) => {
       const userId = hook.result.id
-      const knex = hook.app.get('db')
-      knex('grads').where({user_id: userId}).asCallback((err, res) => {
-        if(err) return cb(err, hook)
-        hook.result.grad = res[0] 
-        cb(null, hook)
+      const grads = hook.app.service('grads')
+      grads.find({query:{user_id: userId}}, (err, grads) => {
+          hook.result.grad = grads[0] 
+          cb(err, hook)
       })
     }
   ],
