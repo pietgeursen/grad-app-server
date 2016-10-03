@@ -1,7 +1,7 @@
 
 exports.up = function (knex, Promise) {
   return knex.schema.table('grads', function (table) {
-    table.text('skills')
+    table.text('skills').defaultTo('')
   })
 }
 
