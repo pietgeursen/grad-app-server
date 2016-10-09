@@ -1,6 +1,6 @@
 'use strict'
 
-const service = (process.env.NODE_ENV === 'test') ? require('feathers-memory') : require('feathers-knex')  
+const service = (process.env.NODE_ENV === 'test') ? require('feathers-memory') : require('feathers-knex')
 const hooks = require('./hooks')
 
 module.exports = function () {

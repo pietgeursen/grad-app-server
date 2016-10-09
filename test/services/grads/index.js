@@ -1,10 +1,8 @@
 var feathers = require('feathers/client')
 var hooks = require('feathers-hooks')
 var auth = require('feathers-authentication/client')
-var rest = require('feathers-rest/client')
-var socketio = require('feathers-socketio/client');
+var socketio = require('feathers-socketio/client')
 var io = require('socket.io-client')
-var superagent = require('superagent')
 var test = require('tape')
 var pull = require('pull-stream')
 var async = require('pull-async')
@@ -12,7 +10,6 @@ var promise = require('pull-promise')
 var {asyncMap, drain} = require('pull-stream')
 
 var App = require('../../../src/app')
-var generateUser = require('../../../generateUser')
 
 test('can get all the grads without being logged in', function (t) {
   const app = App({knex: {}})
@@ -107,7 +104,7 @@ test('grads cannot create more grads', function (t) {
   )
 })
 
-test('an authenticated user has the grad object attached too', function(t) {
+test('an authenticated user has the grad object attached too', function (t) {
   var app = App({knex: {}})
   const email = 'grad@grad.com'
   const password = 'password123'
@@ -132,13 +129,12 @@ test('an authenticated user has the grad object attached too', function(t) {
   )
 })
 
-test('when an admin creates a grad user, their grad profile is created too', function(t) {
-
+test('when an admin creates a grad user, their grad profile is created too', function (t) {
   var app = App({knex: {}})
   const email = 'admin@admin.com'
   const password = 'password123'
   const newAdmin = {email, password, roles: 'admin'}
-  const newGrad = {email:'piet@derp.com', password: 'password', roles: 'grad'}
+  const newGrad = {email: 'piet@derp.com', password: 'password', roles: 'grad'}
 
   const {close, client} = createClientAndServer(app, 3031)
 
@@ -151,23 +147,22 @@ test('when an admin creates a grad user, their grad profile is created too', fun
     }),
     asyncMap((admin, cb) => {
       t.ok(true, 'authenitcated admin')
-      client.service('users').create(newGrad,{}, cb)
+      client.service('users').create(newGrad, {}, cb)
     }),
     asyncMap((newUser, cb) => {
       t.ok(newUser, 'got new grad record')
-      client.service('grads').find({query:{user_id: newUser.id}}, cb) 
+      client.service('grads').find({query: {user_id: newUser.id}}, cb)
     }),
     pull.collect((err, res) => {
       t.error(err)
       t.equal(res.length, 1, 'has one grad')
       t.end()
-      close() 
+      close()
     })
   )
 })
 
-test('grads can update their profiles', function(t) {
-
+test('grads can update their profiles', function (t) {
   const app = App({knex: {}})
   const email = 'newgrad@grad.com'
   const password = 'password123'
@@ -183,17 +178,17 @@ test('grads can update their profiles', function(t) {
       t.ok(true, 'generate new user')
       return client.authenticate({type: 'local', email, password})
     }),
-    asyncMap((result, cb)=> {
+    asyncMap((result, cb) => {
       t.ok(result, 'autheniticated')
       var grads = client.service('grads')
-      grads.find({user_id: result.data.id}, cb) 
+      grads.find({user_id: result.data.id}, cb)
     }),
     pull.flatten(),
     asyncMap((grad, cb) => {
       t.ok(true, 'authenticate as new user')
       var grads = client.service('grads')
       grads.update(grad.id, {name: 'new'})
-        .then(res => cb(null,res))
+        .then(res => cb(null, res))
         .catch(cb)
     }),
     pull.collect(function (err, res) {
@@ -205,10 +200,9 @@ test('grads can update their profiles', function(t) {
   )
 })
 
-
 function createClientAndServer (app, port) {
   var host = `http://localhost:${port}`
-  var socket = io(host) 
+  var socket = io(host)
   var server = app.listen(port)
 
   var client = feathers()
@@ -216,7 +210,7 @@ function createClientAndServer (app, port) {
     .configure(hooks())
     .configure(auth())
 
-  function close() {
+  function close () {
     server.close()
     socket.close()
   }

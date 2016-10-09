@@ -16,7 +16,7 @@ exports.before = {
     auth.restrictToOwner({ ownerField: 'id' })
   ],
   create: [
-    auth.hashPassword()//think this needs to be locked down more?
+    auth.hashPassword()// think this needs to be locked down more?
   ],
   update: [
     auth.verifyToken(),
@@ -44,9 +44,9 @@ exports.after = {
     (hook, cb) => {
       const userId = hook.result[0].id
       const grads = hook.app.service('grads')
-      grads.find({query:{user_id: userId}}, (err, grads) => {
-          hook.result.grad = Object.assign({}, grads[0]) 
-          cb(err, hook)
+      grads.find({query: {user_id: userId}}, (err, grads) => {
+        hook.result.grad = Object.assign({}, grads[0])
+        cb(err, hook)
       })
     }
   ],
@@ -54,22 +54,22 @@ exports.after = {
     (hook, cb) => {
       const userId = hook.result.id
       const grads = hook.app.service('grads')
-      grads.find({query:{user_id: userId}}, (err, grads) => {
-          hook.result.grad = grads[0] 
-          cb(err, hook)
+      grads.find({query: {user_id: userId}}, (err, grads) => {
+        hook.result.grad = grads[0]
+        cb(err, hook)
       })
     }
   ],
   create: [
     (hook, cb) => {
-      if(hook.data.roles == 'grad'){
+      if (hook.data.roles === 'grad') {
         const userId = hook.result.id
         const grads = hook.app.service('grads')
-        grads.create({user_id: userId}, (err, res)=> {
+        grads.create({user_id: userId}, (err, res) => {
           cb(err, hook)
         })
-      }else cb(null, hook)
-    } 
+      } else cb(null, hook)
+    }
   ],
   update: [],
   patch: [],
