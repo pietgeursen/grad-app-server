@@ -23,6 +23,7 @@
     "start": "node src/"
   },
   "dependencies": {
+    "bcrypt": "^0.8.7",
     "body-parser": "^1.15.2",
     "compression": "^1.6.2",
     "cors": "^2.8.1",
@@ -41,7 +42,6 @@
     "socket.io-client": "^1.4.8"
   },
   "devDependencies": {
-    "bcrypt": "^0.8.7",
     "dependency-check": "^2.6.0",
     "feathers-authentication": "^0.7.10",
     "feathers-memory": "^0.8.0",
